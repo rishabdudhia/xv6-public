@@ -16,7 +16,11 @@ sys_fork(void)
 int
 sys_exit(void)
 {
-  exit();
+  int status;
+  if (argint(0, &status) < 0) {
+	exit(1);
+  }
+  exit(status);
   return 0;  // not reached
 }
 
@@ -88,4 +92,12 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+int
+sys_add(void)
+{
+	int a = 1;
+	int b = 2020;
+	return a+b;
 }
