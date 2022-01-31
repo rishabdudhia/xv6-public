@@ -232,6 +232,7 @@ exit(int status)
   int fd;
 
   curproc->status = status;
+  //cprintf("Exit called: %d\n", status); just to check
 
   if(curproc == initproc)
     panic("init exiting");
