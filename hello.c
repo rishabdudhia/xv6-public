@@ -4,17 +4,17 @@
 
 int main (int argc, char* argv[])
 {
-	int pid = fork();
-	//int a = 55;
 	int* status = 0;
-
+	int pid = fork();
+	
 	if (pid) {
+		//waitpid(0,status,0);
 		wait(status);
+		printf(1,"parent %d\n", pid);
 		exit(2);
 	}
 	else {
-		wait(status);
-		exit(10);
+		exit(20);
 	}
 
 

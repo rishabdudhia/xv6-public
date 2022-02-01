@@ -232,7 +232,7 @@ exit(int status)
   int fd;
 
   curproc->status = status;
-  //cprintf("Exit called: %d\n", status); just to check
+  //cprintf("Exit called: %d\n", status); //just to check
 
   if(curproc == initproc)
     panic("init exiting");
@@ -278,6 +278,7 @@ wait(int* status)
   struct proc *p;
   int havekids, pid;
   struct proc *curproc = myproc();
+  int s;
   
   acquire(&ptable.lock);
   for(;;){
@@ -299,8 +300,8 @@ wait(int* status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-        int s = p->status;
-        status = &s;
+        s = p->status;
+        *status = s;
         //cprintf("Wait done with status %d\n", *status); //for debugging purposes
         return pid;
       }
@@ -316,6 +317,53 @@ wait(int* status)
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
+}
+
+int
+waitpid(int pid, int* status, int options) 
+{
+  struct proc *p;
+  int havekids;
+  struct proc *curproc = myproc();
+  int s;
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for exited children.
+    havekids = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid != pid)
+        continue;
+      havekids = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        pid = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        release(&ptable.lock);
+        s = p->status;
+        *status = s;
+        //cprintf("Wait done with status %d\n", *status); //for debugging purposes
+        return pid;
+      }
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || curproc->killed){
+      release(&ptable.lock);
+      //cprintf("No children\n"); // for deubugging
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }  
 }
 
 //PAGEBREAK: 42
