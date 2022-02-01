@@ -299,7 +299,9 @@ wait(int* status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-        p->status = *status;
+        int s = p->status;
+        status = &s;
+        //cprintf("Wait done with status %d\n", *status); //for debugging purposes
         return pid;
       }
     }
@@ -307,6 +309,7 @@ wait(int* status)
     // No point waiting if we don't have any children.
     if(!havekids || curproc->killed){
       release(&ptable.lock);
+      //cprintf("No children\n"); // for deubugging
       return -1;
     }
 

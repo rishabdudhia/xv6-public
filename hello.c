@@ -4,6 +4,18 @@
 
 int main (int argc, char* argv[])
 {
-	printf(1,"Hello world\n");
-	exit(4);
+	int pid = fork();
+	//int a = 55;
+	int* status = 0;
+
+	if (pid) {
+		wait(status);
+		exit(2);
+	}
+	else {
+		wait(status);
+		exit(10);
+	}
+
+
 }
