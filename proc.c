@@ -333,7 +333,7 @@ waitpid(int pid, int* status, int options)
     havekids = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       //cprintf("Process %d with parent %d\n", p->pid, p->parent->pid);
-      if(p->parent != curproc) {
+      if(p->pid != pid) {
         continue;
       }
       //cprintf("In if\n");
@@ -590,4 +590,14 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int
+debug(void)
+{
+  struct proc *p = myproc();
+  acquire(&ptable.lock);
+  cprintf("Process Name: %s\nPID: %d\nParent PID: %d\nProcess size: %d\n", p->name, p->pid, p->parent->pid, p->sz);
+  release(&ptable.lock);
+  return 0;
 }

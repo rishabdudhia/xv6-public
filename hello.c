@@ -14,10 +14,12 @@ int main (int argc, char* argv[])
 	if (pid) {
 		waitpid(pid,&status,0);
 		//wait(&status);
-		printf(1,"parent %d\n", pid);
+		//printf(1,"parent %d\n", pid);
+		debug();
 		exit(2);
 	}
 	else {
+		debug();
 		exit(10);
 	}
 
