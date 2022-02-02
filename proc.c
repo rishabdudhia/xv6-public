@@ -332,12 +332,16 @@ waitpid(int pid, int* status, int options)
     // Scan through table looking for exited children.
     havekids = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->pid != pid)
+      //cprintf("Process %d with parent %d\n", p->pid, p->parent->pid);
+      if(p->parent != curproc) {
         continue;
+      }
+      //cprintf("In if\n");
       havekids = 1;
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
+        //cprintf("Process %d\n", p->pid);
         kfree(p->kstack);
         p->kstack = 0;
         freevm(p->pgdir);
@@ -360,7 +364,7 @@ waitpid(int pid, int* status, int options)
       //cprintf("No children\n"); // for deubugging
       return -1;
     }
-
+    //cprintf("Boutta sleep");
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }  
