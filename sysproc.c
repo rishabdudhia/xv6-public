@@ -130,3 +130,14 @@ sys_debug(void)
 {
   return debug();
 }
+
+int
+sys_setpriority(void) 
+{
+  int priority;
+
+  if(argint(0, &priority) < 0)
+    return -1;
+  setpriority(priority);
+  return 0;
+}
