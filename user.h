@@ -27,6 +27,8 @@ int add(void);
 int waitpid(int, int*, int);
 int debug(void);
 int setpriority(int);
+int getpriority(void);
+int times(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

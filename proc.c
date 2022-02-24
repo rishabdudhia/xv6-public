@@ -89,6 +89,8 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->priority = 10;
+  p->turnaroundtime = 0;
+  p->waittime = 0;
 
   release(&ptable.lock);
 
@@ -216,6 +218,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  np->waittime = 0;
 
   release(&ptable.lock);
 
@@ -391,39 +394,53 @@ scheduler(void)
     sti();
 
     // Loop over process table looking for process to run.
-    struct proc *nextProc = 0;
     struct proc *q = 0;
-    int highestPriority = 100;
+    int islower;
     acquire(&ptable.lock);
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if (p->state != RUNNABLE) {
         continue;
       }
-      if (p->priority < highestPriority) {
-        highestPriority = p->priority;
-        nextProc = p;
-      }
-    
+      islower = 0;
       for (q = ptable.proc; q < &ptable.proc[NPROC]; q++) {
-        if (q == nextProc) {
-          q->priority = q->priority + 1;
+        if (q->state != RUNNABLE && q->state != RUNNING) continue;
+        if (q == p) continue;
+        if (q->priority < p->priority) {
+          islower = 1;
+          break;
         }
-        q->priority = q->priority - 1;
       }
-
-      // Switch to chosen process.  It is the process's job
+      if (islower){
+        continue;
+      }
+      for (q = ptable.proc; q < &ptable.proc[NPROC]; q++) {
+        if (q->state != UNUSED && q->state != ZOMBIE){
+          ++q->turnaroundtime;
+          if (q->state == RUNNABLE && q != p) {
+            ++q->waittime;
+          }
+        }
+      }
+      // Switch to chosen process.  It is the process's job 
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      p = nextProc;
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
-      // Process is done running for now.
+      // Process is done running for now. 
       // It should have changed its p->state before coming back.
+      // for (q = ptable.proc; q < &ptable.proc[NPROC]; q++) {
+      //   if (q->state != RUNNABLE && q->state != RUNNING) continue;
+      //   if (q == p) {
+      //     continue;
+      //   }
+      //   else {
+      //     q->priority = q->priority - 1;
+      //   }
+      // }
+      // ++p->priority;
       c->proc = 0;
     }
     release(&ptable.lock);
@@ -624,7 +641,22 @@ setpriority(int priority)
 {
   struct proc *p = myproc();
   acquire(&ptable.lock);
-  p->state = RUNNABLE;
   p->priority = priority;
+  p->state = RUNNABLE;
   sched();
+  release(&ptable.lock);
+}
+
+int 
+getpriority(void) 
+{
+  struct proc *p = myproc();
+  return p->priority;
+}
+
+void
+times(void)
+{
+  struct proc *p = myproc();
+  cprintf("current process turnaround time: %d\ncurrent process wait time: %d", p->turnaroundtime, p->waittime);
 }

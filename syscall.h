@@ -24,3 +24,5 @@
 #define SYS_waitpid 23
 #define SYS_debug  24
 #define SYS_setpriority 25
+#define SYS_getpriority 26
+#define SYS_times     27

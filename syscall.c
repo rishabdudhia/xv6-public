@@ -107,6 +107,8 @@ extern int sys_add(void);
 extern int sys_waitpid(void);
 extern int sys_debug(void);
 extern int sys_setpriority(void);
+extern int sys_getpriority(void);
+extern int sys_times(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -134,6 +136,8 @@ static int (*syscalls[])(void) = {
 [SYS_waitpid] sys_waitpid,
 [SYS_debug]   sys_debug,
 [SYS_setpriority] sys_setpriority,
+[SYS_getpriority] sys_getpriority,
+[SYS_times] sys_times,
 };
 
 void
