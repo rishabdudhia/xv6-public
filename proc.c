@@ -431,16 +431,16 @@ scheduler(void)
       switchkvm();
       // Process is done running for now. 
       // It should have changed its p->state before coming back.
-      // for (q = ptable.proc; q < &ptable.proc[NPROC]; q++) {
-      //   if (q->state != RUNNABLE && q->state != RUNNING) continue;
-      //   if (q == p) {
-      //     continue;
-      //   }
-      //   else {
-      //     q->priority = q->priority - 1;
-      //   }
-      // }
-      // ++p->priority;
+      for (q = ptable.proc; q < &ptable.proc[NPROC]; q++) {
+        if (q->state != RUNNABLE && q->state != RUNNING) continue;
+        if (q == p) {
+          continue;
+        }
+        else {
+          q->priority = q->priority - 1;
+        }
+      }
+      ++p->priority;
       c->proc = 0;
     }
     release(&ptable.lock);
